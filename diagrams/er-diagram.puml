@@ -1,0 +1,63 @@
+@startuml
+entity "User" as user {
+  +id: UUID <<PK>>
+  email: String
+  password_hash: String
+  full_name: String
+  role: String
+  created_at: datetime
+  last_login_at: datetime
+}
+
+entity "Subscription" as subscription {
+  +id: UUID <<PK>>
+  user_id: UUID <<FK>>
+  plan: String
+  status: String
+  started_at: datetime
+  expires_at: datetime
+}
+
+entity "Device" as device {
+  +id: UUID <<PK>>
+  user_id: UUID <<FK>>
+  name: String
+  type: String
+  status: String
+  location: String
+  registered_at: datetime
+}
+
+entity "Telemetry" as telemetry {
+  +id: UUID <<PK>>
+  device_id: UUID <<FK>>
+  timestamp: datetime
+  metric_type: String
+  value: Float
+}
+
+entity "Rule" as rule {
+  +id: UUID <<PK>>
+  user_id: UUID <<FK>>
+  target_device_id: UUID <<FK>>
+  name: String
+  condition: String
+  action: String
+  enabled: Boolean
+  created_at: datetime
+}
+
+entity "Event" as event {
+  +id: UUID <<PK>>
+  event_type: String
+  source_service: String
+  payload: JSON
+  occurred_at: datetime
+}
+
+user ||--o{ device : owns
+user ||--o{ rule : defines
+user ||--|| subscription : has
+device ||--o{ telemetry : generates
+rule }o--|| device : targets
+@enduml

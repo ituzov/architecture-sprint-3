@@ -1,0 +1,54 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+LAYOUT_TOP_DOWN()
+
+Person(user, "Пользователь", "Управляет системой умного дома через Web/Mobile")
+
+System_Boundary(smart_home, "Smart Home SaaS Platform") {
+
+    Container(api_gateway, "API Gateway", "Kong/Nginx + OAuth", "Принимает запросы от пользователей, выполняет аутентификацию и маршрутизирует запросы")
+
+    Container(auth_service, "Auth Service", "Spring Boot", "Управление регистрацией, логином, JWT, правами доступа")
+    Container(user_service, "User Service", "Spring Boot", "Профили пользователей, подписки, история активности")
+
+    Container(device_service, "Device Management Service", "Spring Boot", "Регистрация, настройка и управление IoT-устройствами")
+    Container(rule_engine, "Automation Engine", "Spring Boot", "Настройка сценариев работы устройств (IFTTT-логика)")
+    Container(telemetry_service, "Telemetry Service", "Spring Boot + TimescaleDB", "Получение и хранение телеметрии от устройств")
+
+    Container(message_bus, "Message Bus", "RabbitMQ / Kafka", "Асинхронный обмен событиями между сервисами")
+
+    Container(auth_db, "Auth DB", "PostgreSQL", "Данные пользователей, сессий, токенов")
+    Container(user_db, "User DB", "PostgreSQL", "Профили пользователей")
+    Container(device_db, "Device DB", "PostgreSQL", "Информация об устройствах")
+    Container(telemetry_db, "Telemetry DB", "TimescaleDB", "Телеметрия в реальном времени")
+    Container(rules_db, "Rules DB", "PostgreSQL", "Сценарии автоматизации")
+}
+
+System_Ext(iot_devices, "Устройства пользователей", "IoT", "Датчики, реле, камеры и т.д. подключённые к интернету")
+System_Ext(admin_panel, "Админ-панель", "Web UI", "Управление платформой оператором")
+
+Rel(user, api_gateway, "HTTPS", "REST/GraphQL")
+Rel(admin_panel, api_gateway, "HTTPS", "REST API")
+
+Rel(api_gateway, auth_service, "REST", "Аутентификация")
+Rel(api_gateway, user_service, "REST", "Запросы к профилю")
+Rel(api_gateway, device_service, "REST", "Управление устройствами")
+Rel(api_gateway, rule_engine, "REST", "Сценарии автоматизации")
+Rel(api_gateway, telemetry_service, "REST", "Запрос телеметрии")
+
+Rel(iot_devices, telemetry_service, "MQTT/HTTP", "Отправка телеметрии")
+Rel(device_service, iot_devices, "MQTT/HTTP", "Управление устройствами")
+
+Rel(auth_service, auth_db, "JDBC", "Хранение данных аутентификации")
+Rel(user_service, user_db, "JDBC", "Хранение профиля")
+Rel(device_service, device_db, "JDBC", "Данные устройств")
+Rel(rule_engine, rules_db, "JDBC", "Правила автоматизации")
+Rel(telemetry_service, telemetry_db, "JDBC", "Телеметрия")
+
+Rel(auth_service, message_bus, "Публикация событий")
+Rel(device_service, message_bus, "Публикация/подписка")
+Rel(rule_engine, message_bus, "Подписка на события устройств")
+Rel(telemetry_service, message_bus, "Публикация событий")
+Rel(user_service, message_bus, "Публикация изменений профиля")
+
+@enduml

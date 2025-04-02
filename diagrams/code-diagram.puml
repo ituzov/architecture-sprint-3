@@ -1,0 +1,85 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+hide circle
+title Device Management Service — Class Diagram (Level 4)
+
+class DeviceController {
+  +registerDevice(dto: DeviceDto): Response
+  +getDevices(): List<DeviceDto>
+  +deleteDevice(id: UUID): Response
+}
+
+class DeviceService {
+  -deviceRepository: DeviceRepository
+  -mqttAdapter: MqttAdapter
+  -eventPublisher: DeviceEventPublisher
+  +registerDevice(dto: DeviceDto)
+  +removeDevice(id: UUID)
+  +listDevices(): List<Device>
+}
+
+class DeviceRepository {
+  +save(device: Device): void
+  +deleteById(id: UUID): void
+  +findAllByUserId(userId: UUID): List<Device>
+  +findById(id: UUID): Optional<Device>
+}
+
+class Device {
+  -id: UUID
+  -userId: UUID
+  -name: String
+  -type: DeviceType
+  -status: DeviceStatus
+  -location: String
+  -registeredAt: DateTime
+  +activate(): void
+  +deactivate(): void
+  +isOwnedBy(userId: UUID): Boolean
+}
+
+enum DeviceType {
+  THERMOSTAT
+  LIGHT
+  GATE
+  CAMERA
+}
+
+enum DeviceStatus {
+  ONLINE
+  OFFLINE
+  ERROR
+}
+
+class MqttAdapter {
+  +sendCommand(deviceId: UUID, payload: String): void
+}
+
+class DeviceEventPublisher {
+  +publish(event: DeviceEvent): void
+}
+
+class DeviceEvent {
+  -type: String
+  -timestamp: DateTime
+  -payload: Map<String, Any>
+}
+
+class DeviceDto {
+  +id: UUID
+  +name: String
+  +type: String
+  +location: String
+  +status: String
+}
+
+' Relationships
+DeviceController --> DeviceService : вызывает
+DeviceService --> DeviceRepository : сохраняет/читает
+DeviceService --> MqttAdapter : отправка команд
+DeviceService --> DeviceEventPublisher : публикует события
+DeviceRepository --> Device : сущность
+DeviceService --> Device : создаёт/мутирует
+DeviceEventPublisher --> DeviceEvent : использует
+@enduml

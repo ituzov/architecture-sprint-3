@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  title: Device Management API
+  version: 1.0.0
+paths:
+  /devices:
+    get:
+      summary: Получение списка устройств
+      responses:
+        '200':
+          description: Список устройств
+    post:
+      summary: Регистрация нового устройства
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDevice'
+      responses:
+        '201':
+          description: Устройство зарегистрировано
+  /devices/{id}:
+    delete:
+      summary: Удаление устройства
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Устройство удалено
+components:
+  schemas:
+    RegisterDevice:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        location:
+          type: string

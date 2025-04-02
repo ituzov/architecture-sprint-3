@@ -1,0 +1,79 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+LAYOUT_WITH_LEGEND()
+
+' ======= AUTH SERVICE =======
+package "Auth Service" {
+  Component(auth_controller, "AuthController", "REST Controller", "Обработка логина, регистрации, refresh токенов")
+  Component(auth_service, "AuthService", "Service", "Бизнес-логика аутентификации")
+  Component(jwt_provider, "JWTProvider", "Helper", "Генерация и проверка JWT")
+  Component(auth_repository, "AuthRepository", "Repository", "Работа с БД (учётные данные)")
+}
+
+Rel(auth_controller, auth_service, "Вызов методов")
+Rel(auth_service, jwt_provider, "Создание и проверка токенов")
+Rel(auth_service, auth_repository, "Сохраняет и извлекает данные")
+
+' ======= USER SERVICE =======
+package "User Service" {
+  Component(user_controller, "UserController", "REST Controller", "Запросы к профилю, смена данных")
+  Component(user_service, "UserService", "Service", "Работа с профилем и настройками")
+  Component(user_repository, "UserRepository", "Repository", "Доступ к данным пользователя")
+}
+
+Rel(user_controller, user_service, "Вызов методов")
+Rel(user_service, user_repository, "Читает/пишет в БД")
+
+' ======= DEVICE SERVICE =======
+package "Device Management Service" {
+  Component(device_controller, "DeviceController", "REST Controller", "Добавление, удаление и настройка устройств")
+  Component(device_service, "DeviceService", "Service", "Бизнес-логика работы с устройствами")
+  Component(device_adapter, "MQTTAdapter", "Adapter", "Отправка команд на устройства")
+  Component(device_repository, "DeviceRepository", "Repository", "Информация об устройствах")
+}
+
+Rel(device_controller, device_service, "Вызов методов")
+Rel(device_service, device_adapter, "Команды на устройство (MQTT/HTTP)")
+Rel(device_service, device_repository, "Работа с БД")
+
+' ======= TELEMETRY SERVICE =======
+package "Telemetry Service" {
+  Component(telemetry_ingestor, "TelemetryIngestor", "Listener", "Принимает данные от устройств по MQTT/HTTP")
+  Component(telemetry_service, "TelemetryService", "Service", "Анализ и маршрутизация телеметрии")
+  Component(telemetry_repository, "TelemetryRepository", "TSDB Adapter", "Сохраняет данные в TimescaleDB / PostgreSQL")
+}
+
+Rel(telemetry_ingestor, telemetry_service, "Передаёт данные для обработки")
+Rel(telemetry_service, telemetry_repository, "Сохраняет телеметрию")
+
+' ======= RULES (AUTOMATION) ENGINE =======
+package "Automation Engine" {
+  Component(rules_controller, "RulesController", "REST Controller", "Создание, редактирование и удаление правил")
+  Component(rules_service, "RulesService", "Service", "Работа с правилами и условиями")
+  Component(rules_executor, "RulesExecutor", "Listener", "Реакция на события от других сервисов")
+  Component(rules_repository, "RulesRepository", "Repository", "Хранение правил в БД")
+}
+
+Rel(rules_controller, rules_service, "Создание/обновление правил")
+Rel(rules_service, rules_repository, "Сохраняет и получает правила")
+Rel(rules_executor, rules_service, "Исполняет подходящие правила")
+
+' ======= CROSS-SERVICE EVENTS (MESSAGE BUS) =======
+Component(message_bus, "Message Bus", "RabbitMQ / Kafka", "Асинхронная публикация и обработка событий")
+
+' Публикация
+Rel(auth_service, message_bus, "Публикует: UserLoggedIn, UserSignedUp")
+Rel(device_service, message_bus, "Публикует: DeviceRegistered, DeviceUpdated")
+Rel(telemetry_service, message_bus, "Публикует: TelemetryReceived")
+Rel(user_service, message_bus, "Публикует: UserProfileUpdated")
+
+' Подписка (обратные связи)
+Rel(message_bus, rules_executor, "Слушает: DeviceRegistered, TelemetryReceived, UserLoggedIn")
+Rel(message_bus, device_service, "Слушает: TelemetryReceived → обновить статус")
+Rel(message_bus, user_service, "Слушает: DeviceRegistered → логирование")
+Rel(message_bus, user_service, "Слушает: UserLoggedIn → обновление lastLoginAt")
+Rel(message_bus, telemetry_service, "Слушает: UserLoggedIn → маркировка активности")
+
+
+
+@enduml

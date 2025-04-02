@@ -1,0 +1,23 @@
+asyncapi: 2.6.0
+info:
+  title: Message Bus Events
+  version: 1.0.0
+channels:
+  device.registered:
+    publish:
+      summary: Устройство зарегистрировано
+  device.updated:
+    publish:
+      summary: Устройство обновлено
+  telemetry.received:
+    publish:
+      summary: Поступила телеметрия
+  user.loggedin:
+    publish:
+      summary: Пользователь вошёл в систему
+  user.signed_up:
+    publish:
+      summary: Новый пользователь зарегистрирован
+  user.profile_updated:
+    publish:
+      summary: Обновлён профиль пользователя
