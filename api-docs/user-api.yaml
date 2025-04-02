@@ -1,0 +1,51 @@
+openapi: 3.0.1
+info:
+  title: User Service API
+  version: 1.0.0
+paths:
+  /users/me:
+    get:
+      summary: Получение профиля
+      responses:
+        '200':
+          description: Профиль пользователя
+    patch:
+      summary: Обновление профиля
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfile'
+      responses:
+        '200':
+          description: Профиль обновлён
+  /users/subscription:
+    get:
+      summary: Получить активную подписку пользователя
+      responses:
+        '200':
+          description: Подписка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+components:
+  schemas:
+    UpdateProfile:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+    Subscription:
+      type: object
+      properties:
+        plan:
+          type: string
+        status:
+          type: string
+        startedAt:
+          type: string
+        expiresAt:
+          type: string

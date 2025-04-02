@@ -1,0 +1,62 @@
+openapi: 3.0.1
+info:
+  title: Rules Engine API
+  version: 1.0.0
+paths:
+  /rules:
+    get:
+      summary: Получить список правил
+      responses:
+        '200':
+          description: Список правил
+    post:
+      summary: Создать новое правило
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      responses:
+        '201':
+          description: Правило создано
+  /rules/{id}:
+    patch:
+      summary: Обновление правила
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      responses:
+        '200':
+          description: Правило обновлено
+    delete:
+      summary: Удалить правило
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Правило удалено
+components:
+  schemas:
+    Rule:
+      type: object
+      properties:
+        name:
+          type: string
+        condition:
+          type: string
+        action:
+          type: string
+        enabled:
+          type: boolean

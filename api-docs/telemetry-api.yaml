@@ -1,0 +1,23 @@
+openapi: 3.0.1
+info:
+  title: Telemetry Service API
+  version: 1.0.0
+paths:
+  /telemetry:
+    get:
+      summary: Получение телеметрии по устройству
+      parameters:
+        - in: query
+          name: deviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Телеметрия устройства
+  /events:
+    get:
+      summary: Получение списка событий (аудит)
+      responses:
+        '200':
+          description: События

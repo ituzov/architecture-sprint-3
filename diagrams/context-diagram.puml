@@ -1,0 +1,14 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+LAYOUT_LEFT_RIGHT()
+Person(user, "Пользователь", "Обычный пользователь, управляет домом")
+System_Boundary(monolith, "Smart Home Monolith") {
+    System(smart_home_monolith, "Smart Home Monolith", "Java + Spring Boot", "Обработка запросов, бизнес-логика и доступ к данным")
+}
+System_Ext(sensors, "Датчики (Sensors)", "Устройства IoT", "Отправляют данные о температуре")
+System_Ext(postgresql, "PostgreSQL DB", "Хранение данных", "Содержит данные о пользователях, устройствах, температурах")
+Rel(user, smart_home_monolith, "Веб-интерфейс / REST API", "Управление отоплением, просмотр температуры")
+Rel(smart_home_monolith, postgresql, "CRUD операции", "Сохранение и чтение данных")
+Rel(sensors, smart_home_monolith, "Периодическая отправка данных по запросу", "Температура, статус")
+@enduml
+
